@@ -17,7 +17,8 @@ server/
   db.ts                       - PostgreSQL connection pool (Drizzle)
   routes.ts                   - API route handlers (GET/POST/PATCH/DELETE)
   storage.ts                  - Storage interface + DatabaseStorage class
-  prospect-helpers.ts         - Pure helper functions (getNextStatus, validateProspect, isTerminalStatus)
+  prospect-helpers.ts         - Pure helper functions (getNextStatus, validateProspect, isTerminalStatus, filterProspectsByInterest)
+  prospect-helpers.test.ts    - Jest tests for prospect helper functions
 client/src/
   App.tsx                     - Root component, routing, providers
   pages/home.tsx              - Kanban board with 7 status columns
@@ -46,3 +47,8 @@ Single `prospects` table: id, company_name, role_title, job_url, status, interes
 
 - `npm run dev` starts the full app (Express + Vite)
 - `npm run db:push` syncs schema to database
+- `npm test` runs Jest tests (including interest level filter tests)
+
+## Features
+
+- **Per-column interest level filter**: Each Kanban column has a dropdown to filter prospects by interest level (All/High/Medium/Low). Filters are independent per column and operate client-side only (no server calls). Badge counts reflect the filtered view.
