@@ -86,11 +86,10 @@ function InlinePayEditor({ prospect }: { prospect: Prospect }) {
       <Popover open={open} onOpenChange={(v) => { setOpen(v); if (v) setValue(String(prospect.pay)); }}>
         <PopoverTrigger asChild>
           <button
-            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer bg-transparent border-0 p-0"
+            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 cursor-pointer bg-transparent border-0 p-0"
             onClick={(e) => e.stopPropagation()}
             data-testid={`text-pay-${prospect.id}`}
           >
-            <DollarSign className="w-3 h-3" />
             {formatPay(prospect.pay)}
           </button>
         </PopoverTrigger>
