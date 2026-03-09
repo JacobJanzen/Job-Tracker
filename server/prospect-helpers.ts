@@ -45,3 +45,16 @@ export function validateProspect(data: Record<string, unknown>): { valid: boolea
 export function isTerminalStatus(status: string): boolean {
   return status === "Rejected" || status === "Withdrawn" || status === "Offer";
 }
+
+export function filterProspectsByInterest<T extends { interestLevel: string }>(
+  prospects: T[],
+  filter: string,
+): T[] {
+  if (!filter || filter === "All") {
+    return prospects;
+  }
+  if (!INTEREST_LEVELS.includes(filter as (typeof INTEREST_LEVELS)[number])) {
+    return prospects;
+  }
+  return prospects.filter((p) => p.interestLevel === filter);
+}
