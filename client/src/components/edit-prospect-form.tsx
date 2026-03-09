@@ -41,6 +41,7 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
       jobUrl: prospect.jobUrl ?? "",
       status: prospect.status as InsertProspect["status"],
       interestLevel: prospect.interestLevel as InsertProspect["interestLevel"],
+      pay: prospect.pay ?? undefined,
       notes: prospect.notes ?? "",
     },
   });
@@ -160,6 +161,30 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="pay"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Target Salary (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 85000"
+                  data-testid="input-edit-pay"
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    field.onChange(v === "" ? null : parseInt(v, 10));
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

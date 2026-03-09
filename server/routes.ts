@@ -39,6 +39,17 @@ export async function registerRoutes(
     if (body.roleTitle !== undefined) updates.roleTitle = body.roleTitle;
     if (body.jobUrl !== undefined) updates.jobUrl = body.jobUrl;
     if (body.notes !== undefined) updates.notes = body.notes;
+    if (body.pay !== undefined) {
+      if (body.pay === null) {
+        updates.pay = null;
+      } else {
+        const payNum = typeof body.pay === "string" ? parseInt(body.pay, 10) : body.pay;
+        if (typeof payNum !== "number" || !Number.isInteger(payNum) || payNum <= 0) {
+          return res.status(400).json({ message: "Pay must be a positive integer" });
+        }
+        updates.pay = payNum;
+      }
+    }
 
     if (body.status !== undefined) {
       if (!STATUSES.includes(body.status)) {
