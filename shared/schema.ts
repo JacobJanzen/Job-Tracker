@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ export const prospects = pgTable("prospects", {
   jobUrl: text("job_url"),
   status: text("status").notNull().default("Bookmarked"),
   interestLevel: text("interest_level").notNull().default("Medium"),
+  pay: integer("pay"),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -33,9 +34,26 @@ export const insertProspectSchema = createInsertSchema(prospects).omit({
   roleTitle: z.string().min(1, "Role title is required"),
   status: z.enum(STATUSES).default("Bookmarked"),
   interestLevel: z.enum(INTEREST_LEVELS).default("Medium"),
+  pay: z.number().int().positive().optional().nullable(),
   jobUrl: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 });
 
 export type InsertProspect = z.infer<typeof insertProspectSchema>;
 export type Prospect = typeof prospects.$inferSelect;
+
+export function formatPay(pay: number): string {
+  if (pay < 1000) {
+    return `$${pay} / hr`;
+  }
+  if (pay >= 1000000) {
+    const inMillions = pay / 1000000;
+    const rounded = Math.round(inMillions * 10) / 10;
+    const display = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+    return `$${display}m`;
+  }
+  const inThousands = pay / 1000;
+  const rounded = Math.round(inThousands * 10) / 10;
+  const display = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+  return `$${display}k`;
+}

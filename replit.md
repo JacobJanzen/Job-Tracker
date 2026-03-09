@@ -19,6 +19,7 @@ server/
   storage.ts                  - Storage interface + DatabaseStorage class
   prospect-helpers.ts         - Pure helper functions (getNextStatus, validateProspect, isTerminalStatus, filterProspectsByInterest)
   prospect-helpers.test.ts    - Jest tests for prospect helper functions
+  format-pay.test.ts          - Jest tests for pay formatting logic
 client/src/
   App.tsx                     - Root component, routing, providers
   pages/home.tsx              - Kanban board with 7 status columns
@@ -31,7 +32,7 @@ client/src/
 
 ## Database
 
-Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, notes, created_at.
+Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, pay, notes, created_at.
 
 - **Statuses**: Bookmarked, Applied, Phone Screen, Interviewing, Offer, Rejected, Withdrawn
 - **Interest levels**: High, Medium, Low
@@ -52,3 +53,4 @@ Single `prospects` table: id, company_name, role_title, job_url, status, interes
 ## Features
 
 - **Per-column interest level filter**: Each Kanban column has a dropdown to filter prospects by interest level (All/High/Medium/Low). Filters are independent per column and operate client-side only (no server calls). Badge counts reflect the filtered view.
+- **Target Salary (pay)**: Optional integer field. Displayed as "$X / hr" for values ≤999, or "$Xk" (rounded to tenths) for values ≥1000. Cards without pay show an "Add $" button; cards with pay show formatted salary that opens an inline editor on click. Also editable via add/edit forms.
