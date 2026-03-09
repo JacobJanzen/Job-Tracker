@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { Prospect } from "@shared/schema";
-import { formatPay } from "@shared/schema";
+import { formatPay, STATUSES } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus } from "lucide-react";
+import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, ArrowLeftRight } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EditProspectForm } from "./edit-prospect-form";
 
 function InterestIndicator({ level }: { level: string }) {
@@ -170,7 +176,19 @@ function InlinePayEditor({ prospect }: { prospect: Prospect }) {
   );
 }
 
-export function ProspectCard({ prospect }: { prospect: Prospect }) {
+function getOrderedStatusOptions(currentStatus: string): string[] {
+  const index = STATUSES.indexOf(currentStatus as (typeof STATUSES)[number]);
+  if (index === -1) return [...STATUSES];
+  return [...STATUSES.slice(index + 1), ...STATUSES.slice(0, index)];
+}
+
+export function ProspectCard({
+  prospect,
+  onStatusChange,
+}: {
+  prospect: Prospect;
+  onStatusChange?: (oldStatus: string, newStatus: string) => void;
+}) {
   const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
 
@@ -187,10 +205,27 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      await apiRequest("PATCH", `/api/prospects/${prospect.id}`, { status: newStatus });
+    },
+    onSuccess: (_data, newStatus) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
+      toast({ title: `Status updated to ${newStatus}` });
+      onStatusChange?.(prospect.status, newStatus);
+    },
+    onError: () => {
+      toast({ title: "Failed to update status", variant: "destructive" });
+    },
+  });
+
+  const isOffer = prospect.status === "Offer";
+  const cardClasses = `group bg-card border border-card-border rounded-md p-3 space-y-2 hover-elevate cursor-pointer transition-all duration-150${isOffer ? " offer-card-glow" : ""}`;
+
   return (
     <>
       <div
-        className="group bg-card border border-card-border rounded-md p-3 space-y-2 hover-elevate cursor-pointer transition-all duration-150"
+        className={cardClasses}
         onClick={() => setEditOpen(true)}
         data-testid={`card-prospect-${prospect.id}`}
       >
@@ -204,6 +239,31 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
             </p>
           </div>
           <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={statusMutation.isPending}
+                  data-testid={`button-status-${prospect.id}`}
+                >
+                  <ArrowLeftRight className="w-3 h-3 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                {getOrderedStatusOptions(prospect.status).map((s) => (
+                  <DropdownMenuItem
+                    key={s}
+                    onClick={() => statusMutation.mutate(s)}
+                    data-testid={`status-option-${s.replace(/\s+/g, "-").toLowerCase()}-${prospect.id}`}
+                  >
+                    {s}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               size="icon"
               variant="ghost"
@@ -263,7 +323,7 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
           <DialogHeader>
             <DialogTitle>Edit Prospect</DialogTitle>
           </DialogHeader>
-          <EditProspectForm prospect={prospect} onSuccess={() => setEditOpen(false)} />
+          <EditProspectForm prospect={prospect} onSuccess={() => setEditOpen(false)} onStatusChange={onStatusChange} />
         </DialogContent>
       </Dialog>
     </>

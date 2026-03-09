@@ -46,6 +46,20 @@ export function isTerminalStatus(status: string): boolean {
   return status === "Rejected" || status === "Withdrawn" || status === "Offer";
 }
 
+export function getOrderedStatusOptions(currentStatus: string): string[] {
+  const index = STATUSES.indexOf(currentStatus as (typeof STATUSES)[number]);
+  if (index === -1) {
+    return [...STATUSES];
+  }
+  const after = STATUSES.slice(index + 1);
+  const before = STATUSES.slice(0, index);
+  return [...after, ...before];
+}
+
+export function shouldCelebrate(oldStatus: string, newStatus: string): boolean {
+  return newStatus === "Offer" && oldStatus !== "Offer";
+}
+
 export function filterProspectsByInterest<T extends { interestLevel: string }>(
   prospects: T[],
   filter: string,

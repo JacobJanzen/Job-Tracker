@@ -28,9 +28,10 @@ import { Loader2 } from "lucide-react";
 interface EditProspectFormProps {
   prospect: Prospect;
   onSuccess?: () => void;
+  onStatusChange?: (oldStatus: string, newStatus: string) => void;
 }
 
-export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps) {
+export function EditProspectForm({ prospect, onSuccess, onStatusChange }: EditProspectFormProps) {
   const { toast } = useToast();
 
   const form = useForm<InsertProspect>({
@@ -49,10 +50,14 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
   const mutation = useMutation({
     mutationFn: async (data: InsertProspect) => {
       await apiRequest("PATCH", `/api/prospects/${prospect.id}`, data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/prospects"] });
       toast({ title: "Prospect updated" });
+      if (data.status && data.status !== prospect.status) {
+        onStatusChange?.(prospect.status, data.status);
+      }
       onSuccess?.();
     },
     onError: () => {

@@ -1,4 +1,4 @@
-import { filterProspectsByInterest, getNextStatus, validateProspect, isTerminalStatus } from "./prospect-helpers";
+import { filterProspectsByInterest, getNextStatus, validateProspect, isTerminalStatus, getOrderedStatusOptions, shouldCelebrate } from "./prospect-helpers";
 
 describe("filterProspectsByInterest", () => {
   const prospects = [
@@ -70,5 +70,66 @@ describe("filterProspectsByInterest", () => {
 
     expect(appliedMedium).toHaveLength(1);
     expect(appliedMedium[0].companyName).toBe("Echo");
+  });
+});
+
+describe("getOrderedStatusOptions", () => {
+  it("returns statuses starting from the next one for Phone Screen", () => {
+    const result = getOrderedStatusOptions("Phone Screen");
+    expect(result).toEqual(["Interviewing", "Offer", "Rejected", "Withdrawn", "Bookmarked", "Applied"]);
+  });
+
+  it("returns statuses starting from Applied for Bookmarked (first status)", () => {
+    const result = getOrderedStatusOptions("Bookmarked");
+    expect(result).toEqual(["Applied", "Phone Screen", "Interviewing", "Offer", "Rejected", "Withdrawn"]);
+  });
+
+  it("wraps around for Withdrawn (last status)", () => {
+    const result = getOrderedStatusOptions("Withdrawn");
+    expect(result).toEqual(["Bookmarked", "Applied", "Phone Screen", "Interviewing", "Offer", "Rejected"]);
+  });
+
+  it("excludes the current status from the result", () => {
+    const statuses = ["Bookmarked", "Applied", "Phone Screen", "Interviewing", "Offer", "Rejected", "Withdrawn"];
+    for (const status of statuses) {
+      const result = getOrderedStatusOptions(status);
+      expect(result).not.toContain(status);
+    }
+  });
+
+  it("always returns exactly 6 options (total statuses minus 1)", () => {
+    const statuses = ["Bookmarked", "Applied", "Phone Screen", "Interviewing", "Offer", "Rejected", "Withdrawn"];
+    for (const status of statuses) {
+      expect(getOrderedStatusOptions(status)).toHaveLength(6);
+    }
+  });
+
+  it("returns all statuses for an unknown status", () => {
+    const result = getOrderedStatusOptions("Unknown");
+    expect(result).toHaveLength(7);
+  });
+
+  it("shows correct ordering for Offer", () => {
+    const result = getOrderedStatusOptions("Offer");
+    expect(result).toEqual(["Rejected", "Withdrawn", "Bookmarked", "Applied", "Phone Screen", "Interviewing"]);
+  });
+});
+
+describe("shouldCelebrate", () => {
+  it("returns true when moving to Offer from a non-Offer status", () => {
+    expect(shouldCelebrate("Bookmarked", "Offer")).toBe(true);
+    expect(shouldCelebrate("Applied", "Offer")).toBe(true);
+    expect(shouldCelebrate("Phone Screen", "Offer")).toBe(true);
+    expect(shouldCelebrate("Interviewing", "Offer")).toBe(true);
+  });
+
+  it("returns false when status is already Offer", () => {
+    expect(shouldCelebrate("Offer", "Offer")).toBe(false);
+  });
+
+  it("returns false when moving to any non-Offer status", () => {
+    expect(shouldCelebrate("Bookmarked", "Applied")).toBe(false);
+    expect(shouldCelebrate("Offer", "Rejected")).toBe(false);
+    expect(shouldCelebrate("Interviewing", "Withdrawn")).toBe(false);
   });
 });

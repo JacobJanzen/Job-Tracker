@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Prospect } from "@shared/schema";
 import { STATUSES, INTEREST_LEVELS } from "@shared/schema";
 import { ProspectCard } from "@/components/prospect-card";
 import { AddProspectForm } from "@/components/add-prospect-form";
+import { CelebrationOverlay } from "@/components/celebration-overlay";
 import { Briefcase, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,12 +42,14 @@ function KanbanColumn({
   isLoading,
   interestFilter,
   onInterestFilterChange,
+  onStatusChange,
 }: {
   status: string;
   prospects: Prospect[];
   isLoading: boolean;
   interestFilter: string;
   onInterestFilterChange: (value: string) => void;
+  onStatusChange?: (oldStatus: string, newStatus: string) => void;
 }) {
   const filteredProspects =
     interestFilter === "All"
@@ -106,7 +109,7 @@ function KanbanColumn({
             </div>
           ) : (
             filteredProspects.map((prospect) => (
-              <ProspectCard key={prospect.id} prospect={prospect} />
+              <ProspectCard key={prospect.id} prospect={prospect} onStatusChange={onStatusChange} />
             ))
           )}
         </div>
@@ -117,9 +120,16 @@ function KanbanColumn({
 
 export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const [interestFilters, setInterestFilters] = useState<Record<string, string>>(
     () => Object.fromEntries(STATUSES.map((s) => [s, "All"])),
   );
+
+  const handleStatusChange = useCallback((oldStatus: string, newStatus: string) => {
+    if (newStatus === "Offer" && oldStatus !== "Offer") {
+      setCelebrating(true);
+    }
+  }, []);
 
   const { data: prospects, isLoading } = useQuery<Prospect[]>({
     queryKey: ["/api/prospects"],
@@ -183,10 +193,14 @@ export default function Home() {
               onInterestFilterChange={(value) =>
                 setInterestFilters((prev) => ({ ...prev, [status]: value }))
               }
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>
       </main>
+      {celebrating && (
+        <CelebrationOverlay onComplete={() => setCelebrating(false)} />
+      )}
     </div>
   );
 }
