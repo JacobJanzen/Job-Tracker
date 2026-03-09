@@ -39,4 +39,11 @@ describe("formatPay", () => {
     expect(formatPay(50000)).toBe("$50k");
     expect(formatPay(120000)).toBe("$120k");
   });
+
+  it("displays in millions with m suffix for 7+ digit values", () => {
+    expect(formatPay(1000000)).toBe("$1m");
+    expect(formatPay(1700500)).toBe("$1.7m");
+    expect(formatPay(10000000)).toBe("$10m");
+    expect(formatPay(15500000)).toBe("$15.5m");
+  });
 });

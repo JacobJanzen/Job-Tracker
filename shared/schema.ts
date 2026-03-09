@@ -46,6 +46,12 @@ export function formatPay(pay: number): string {
   if (pay < 1000) {
     return `$${pay} / hr`;
   }
+  if (pay >= 1000000) {
+    const inMillions = pay / 1000000;
+    const rounded = Math.round(inMillions * 10) / 10;
+    const display = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+    return `$${display}m`;
+  }
   const inThousands = pay / 1000;
   const rounded = Math.round(inThousands * 10) / 10;
   const display = rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
