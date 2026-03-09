@@ -3,7 +3,7 @@ import type { Prospect } from "@shared/schema";
 import { formatPay } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, DollarSign } from "lucide-react";
+import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -140,7 +140,6 @@ function InlinePayEditor({ prospect }: { prospect: Prospect }) {
           onClick={(e) => e.stopPropagation()}
           data-testid={`button-add-pay-${prospect.id}`}
         >
-          <DollarSign className="w-3 h-3" />
           Add $
         </button>
       </PopoverTrigger>
